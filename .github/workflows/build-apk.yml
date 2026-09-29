@@ -156,14 +156,34 @@ jobs:
           VERSION_NAME="$(node -p "require('./package.json').version")"
           VERSION_CODE="${{ github.run_number }}"
 
-          python3 - <<PY
+          export VERSION_NAME VERSION_CODE
+          python3 - <<'PY'
           from pathlib import Path
+          import os
           import re
+
+          version_name = os.environ["VERSION_NAME"]
+          version_code = os.environ["VERSION_CODE"]
 
           p = Path("android/app/build.gradle")
           s = p.read_text(encoding="utf-8")
-          s = re.sub(r'versionCode\s+\d+', f'versionCode {VERSION_CODE}', s, count=1)
-          s = re.sub(r'versionName\s+"[^"]*"', f'versionName "{VERSION_NAME}"', s, count=1)
+
+          s, n1 = re.subn(
+              r'versionCode\s+\d+',
+              f'versionCode {version_code}',
+              s,
+              count=1,
+          )
+          s, n2 = re.subn(
+              r'versionName\s+"[^"]*"',
+              f'versionName "{version_name}"',
+              s,
+              count=1,
+          )
+
+          if n1 == 0 or n2 == 0:
+              raise SystemExit("Could not find versionCode/versionName in android/app/build.gradle")
+
           p.write_text(s, encoding="utf-8")
           PY
 
