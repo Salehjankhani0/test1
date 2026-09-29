@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # ساخت APK روی کامپیوتر خودتان (نیاز: Node 20+، JDK 17، Android SDK)
-# استفاده:  VITE_API_BASE=https://api.example.com ./build-apk.sh
 set -euo pipefail
-: "${VITE_API_BASE:?VITE_API_BASE را (آدرس HTTPS بک‌اند) تنظیم کنید}"
 npm install
 npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
 npm run build

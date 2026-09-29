@@ -350,16 +350,6 @@ body {
 .options-card .switch i::before { width: 15px; height: 15px; top: 3px; inset-inline-start: 3px; }
 .options-card .switch input:checked + i::before { inset-inline-start: 18px; }
 
-/* --- auth / account screens --- */
-.auth-screen { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--app-bg, #f1f5f9); }
-.auth-card { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; padding: 22px 20px; display: flex; flex-direction: column; gap: 12px; }
-.auth-card h1 { font-size: 18px; margin: 0; }
-.auth-hint { color: #64748b; font-size: 13.5px; margin: 0; }
-.auth-input { width: 100%; text-align: center; font-size: 18px; letter-spacing: 1px; padding: 12px; border-radius: 10px; border: 1.5px solid #dbe3ea; }
-.auth-err { color: #dc2626; font-size: 13px; background: #fef2f2; border-radius: 8px; padding: 8px 10px; }
-.auth-row { display: flex; justify-content: space-between; gap: 8px; }
-.auth-loading { text-align: center; color: #64748b; }
-
 /* ---------- refined settings pickers ---------- */
 .card:has(.option-picker) .card-h {
   background: linear-gradient(135deg, #f8fafc 0%, #ffffff 70%);
@@ -450,50 +440,3 @@ body {
 .card.items.collapsed .card-actions { margin-inline-start:auto; }
 .collapse-body { overflow:hidden; }
 
-/* ==========================================================================
-   Account panel — simple, matches the rest of the app's plain cards
-   (uses .modal / .card / .btn like every other dialog, no bespoke chrome)
-   ========================================================================== */
-.acc-wrap { display: flex; flex-direction: column; gap: 12px; }
-
-.acc-id { display: flex; align-items: center; gap: 10px; }
-.acc-avatar { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
-.acc-id-text { display: flex; flex-direction: column; gap: 4px; }
-.acc-id-text b { font-size: 14px; }
-.acc-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #dc2626; width: fit-content; }
-.acc-badge i { width: 6px; height: 6px; border-radius: 50%; background: #dc2626; }
-.acc-badge.ok { color: var(--success); }
-.acc-badge.ok i { background: var(--success); }
-
-.acc-card { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.acc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; }
-.acc-row > span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
-.acc-row > span svg { color: var(--accent); }
-.acc-row b { color: #1f2937; font-weight: 700; }
-.acc-row + .acc-row { padding-top: 8px; border-top: 1px solid var(--card-border); }
-
-.acc-card-title { font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
-
-.acc-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.acc-plan {
-  position: relative; min-width: 0; padding: 12px 11px 10px;
-  border: 1.5px solid var(--card-border); border-radius: 12px; background: #fff; color: inherit;
-  text-align: center; cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 6px;
-}
-.acc-plan:active { background: var(--accent-soft); }
-.acc-plan:disabled { opacity: .6; cursor: default; }
-.acc-plan.featured { border-color: var(--accent); }
-.acc-plan > b { font-size: 12.5px; }
-.acc-tag { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 9.5px; font-weight: 700; white-space: nowrap; }
-.acc-plan-price { display: flex; align-items: baseline; justify-content: center; gap: 3px; }
-.acc-plan-price strong { font-size: 19px; font-weight: 800; }
-.acc-plan-price span { color: #9a9db0; font-size: 9.5px; }
-.acc-plan small { color: #9a9db0; font-size: 10px; }
-.acc-plan-cta { font-size: 11px; font-weight: 700; color: var(--accent); padding-top: 6px; border-top: 1px solid var(--card-border); }
-
-.acc-logout { width: 100%; justify-content: center; }
-
-/* ---- قفل قابلیت‌های پولی ---- */
-.lock-badge { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; font-size: 11px; font-weight: 700; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; border-radius: 999px; padding: 2px 8px; }
-.native-option-picker.is-locked { opacity: .6; cursor: pointer; }
-.native-option-picker.is-locked select { pointer-events: none; cursor: pointer; }

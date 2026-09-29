@@ -23,9 +23,6 @@ import { CutMap, sheetGroups, THEMES } from './components/CutMap.tsx';
 import type { MapView } from './components/CutMap.tsx';
 import { GlobalStats, SheetStatsPager, UnplacedList } from './components/GlobalStats.tsx';
 import { ProjectPanel, AboutDialog, ReportIssueDialog } from './components/ProjectPanel.tsx';
-import { AccountPage } from './auth/AccountPage.tsx';
-import { useAuth } from './auth/AuthContext.tsx';
-import { applyEntitlements, PREMIUM_NOTE } from './auth/entitlements.ts';
 
 type Kind = 'pieces' | 'stock';
 
@@ -85,21 +82,7 @@ export default function App() {
     });
   }, []);
 
-  const [showAccount, setShowAccount] = useState(false);
-  const { account } = useAuth();
-  const premium = !!account?.hasAccess;
-  /** نسخهٔ مؤثر پروژه: برای کاربر بدون اشتراک، تنظیمات پولی روی پیش‌فرض قفل می‌شود */
-  const effProject = useMemo(() => applyEntitlements(project, premium), [project, premium]);
-  const requirePremium = useCallback(
-    (fn: () => void) => (): void => {
-      if (premium) fn();
-      else {
-        toast(PREMIUM_NOTE + ' — از «حساب کاربری» اشتراک تهیه کنید', 'info');
-        setShowAccount(true);
-      }
-    },
-    [premium, toast],
-  );
+  const effProject = project;
 
   /* ---------------- optimize ---------------- */
   const [running, setRunning] = useState(false);
@@ -133,7 +116,7 @@ export default function App() {
 
   const runOptimize = useCallback(
     (base?: Project) => {
-      const p = applyEntitlements(base ?? project, premium);
+      const p = base ?? project;
       const enabledPieces = p.pieces.filter((x) => x.enabled && x.qty >= 1 && x.width > 0 && x.height > 0);
       const enabledStock = p.stock.filter((x) => x.enabled && x.qty >= 1 && x.width > 0 && x.height > 0);
       if (!enabledPieces.length) return toast('حداقل یک قطعهٔ معتبر اضافه کنید', 'err');
@@ -155,7 +138,7 @@ export default function App() {
         })
         .finally(() => setRunning(false));
     },
-    [project, toast, premium],
+    [project, toast],
   );
 
   const cancelOptimize = (): void => {
@@ -205,11 +188,6 @@ export default function App() {
     });
   };
   const cycleGrain = (id: string): void => {
-    if (!premium) {
-      toast(PREMIUM_NOTE + ' — از «حساب کاربری» اشتراک تهیه کنید', 'info');
-      setShowAccount(true);
-      return;
-    }
     const order: GrainMode[] = ['vertical', 'horizontal', 'free'];
     const cur = project.pieces.find((x) => x.id === id)?.grain ?? 'free';
     updateRow('pieces', id, { grain: order[(order.indexOf(cur) + 1) % 3] });
@@ -347,10 +325,10 @@ export default function App() {
     { label: 'فعال‌سازی همه', icon: 'check', onClick: () => setAllEnabled(kind, true) },
     { label: 'غیرفعال‌سازی همه', icon: 'x', onClick: () => setAllEnabled(kind, false) },
     { divider: true, label: '' },
-    { label: 'ذخیره در انبار', icon: premium ? 'folder' : 'lock', onClick: requirePremium(() => void sendToWarehouse(kind)) },
-    { label: 'افزودن از انبار', icon: premium ? 'folder' : 'lock', onClick: requirePremium(() => void openWarehouse(kind)) },
+    { label: 'ذخیره در انبار', icon: 'folder', onClick: () => void sendToWarehouse(kind) },
+    { label: 'افزودن از انبار', icon: 'folder', onClick: () => void openWarehouse(kind) },
     { divider: true, label: '' },
-    { label: 'خروجی CSV', icon: premium ? 'download' : 'lock', onClick: requirePremium(() => exportCsv(kind)) },
+    { label: 'خروجی CSV', icon: 'download', onClick: () => exportCsv(kind) },
     { label: 'ورودی CSV', icon: 'upload', onClick: () => void importCsv(kind) },
     { divider: true, label: '' },
     { label: 'حذف همه', icon: 'trash', danger: true, onClick: () => void deleteAll(kind) },
@@ -440,11 +418,11 @@ export default function App() {
       },
     },
     { divider: true, label: '' },
-    { label: 'خروجی پروژه (JSON)', icon: premium ? 'download' : 'lock', onClick: requirePremium(exportProject) },
+    { label: 'خروجی پروژه (JSON)', icon: 'download', onClick: exportProject },
     { label: 'ورودی پروژه (JSON)', icon: 'upload', onClick: () => void importProject() },
     { divider: true, label: '' },
-    { label: 'خروجی PDF', icon: premium ? 'file' : 'lock', onClick: requirePremium(exportPdf) },
-    { label: 'خروجی تصویر PNG', icon: premium ? 'image' : 'lock', onClick: requirePremium(() => void exportPng('png')) },
+    { label: 'خروجی PDF', icon: 'file', onClick: exportPdf },
+    { label: 'خروجی تصویر PNG', icon: 'image', onClick: () => void exportPng('png') },
     { divider: true, label: '' },
     { label: 'گزارش مشکل', icon: 'alert', onClick: () => setShowIssue(true) },
     { label: 'دربارهٔ برنامه', icon: 'info', onClick: () => setShowAbout(true) },
@@ -456,11 +434,6 @@ export default function App() {
   };
 
   const rotatePiece = (si: number, key: string): void => {
-    if (!premium) {
-      toast(PREMIUM_NOTE + ' — از «حساب کاربری» اشتراک تهیه کنید', 'info');
-      setShowAccount(true);
-      return;
-    }
     withResult((sol) => {
       const sh = sol.sheets[si];
       const p = sh.placements.find((q) => `${q.pieceId}#${q.instance}` === key);
@@ -540,9 +513,6 @@ export default function App() {
             {project.name}
             <span className="sub">برش‌یار شیشه — بهینه‌سازی برش دوبعدی</span>
           </h1>
-          <button className="icon-btn top" onClick={() => setShowAccount(true)} aria-label="حساب کاربری" title="حساب کاربری">
-            <Icon name="user" />
-          </button>
           <button className="icon-btn top" onClick={() => setShowSettings(true)} aria-label="تنظیمات" title="تنظیمات">
             <Icon name="settings" />
           </button>
@@ -588,16 +558,15 @@ export default function App() {
             <section className="card options-card">
               <div className="form pad">
                 <Toggle
-                  label={premium ? 'نمایش برچسب‌ها روی نقشه برش' : '🔒 نمایش برچسب‌ها روی نقشه برش'}
-                  hint={premium ? undefined : PREMIUM_NOTE}
+                  label="نمایش برچسب‌ها روی نقشه برش"
                   checked={effProject.settings.showLabels}
-                  onChange={premium ? (v) => patch((p) => ({ ...p, settings: { ...p.settings, showLabels: v } })) : requirePremium(() => undefined)}
+                  onChange={(v) => patch((p) => ({ ...p, settings: { ...p.settings, showLabels: v } }))}
                 />
                 <Toggle
-                  label={premium ? 'جهت دانه‌ها را در نظر بگیر' : '🔒 جهت دانه‌ها را در نظر بگیر'}
-                  hint={premium ? 'خاموش: هر قطعه آزادانه ۹۰° می‌چرخد — روشن: طبق تنظیم «جهت دانه» هر قطعه' : PREMIUM_NOTE}
+                  label="جهت دانه‌ها را در نظر بگیر"
+                  hint="خاموش: هر قطعه آزادانه ۹۰° می‌چرخد — روشن: طبق تنظیم «جهت دانه» هر قطعه"
                   checked={effProject.settings.considerGrain}
-                  onChange={premium ? (v) => patch((p) => ({ ...p, settings: { ...p.settings, considerGrain: v } })) : requirePremium(() => undefined)}
+                  onChange={(v) => patch((p) => ({ ...p, settings: { ...p.settings, considerGrain: v } }))}
                 />
               </div>
             </section>
@@ -661,7 +630,6 @@ export default function App() {
           </button>
         </div>
 
-        {showAccount && account ? <AccountPage onClose={() => setShowAccount(false)} /> : null}
         {warehouseKind ? (
           <Modal title={`انبار ابعاد — ${warehouseKind === 'pieces' ? 'صفحه‌ها' : 'موجودی'}`} onClose={() => { setWarehouseKind(null); setWarehouseSelected([]); }} footer={
             <>
@@ -687,7 +655,7 @@ export default function App() {
 
         {showSettings ? (
           <Modal title="تنظیمات" onClose={() => setShowSettings(false)} footer={<button className="btn btn-primary" onClick={() => setShowSettings(false)}>تأیید</button>}>
-            <SettingsCard project={effProject} locked={!premium} onLockedClick={requirePremium(() => undefined)} onSettings={(patchS) => patch((p) => ({ ...p, settings: { ...p.settings, ...patchS } }))} />
+            <SettingsCard project={effProject} onSettings={(patchS) => patch((p) => ({ ...p, settings: { ...p.settings, ...patchS } }))} />
           </Modal>
         ) : null}
         {newName !== null ? (
