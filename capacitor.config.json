@@ -1,0 +1,9 @@
+{
+  "appId": "com.glasscut.app",
+  "appName": "برش‌یار شیشه",
+  "webDir": "dist",
+  "backgroundColor": "#0f172a",
+  "server": {
+    "androidScheme": "https"
+  }
+}

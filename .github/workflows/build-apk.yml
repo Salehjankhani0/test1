@@ -1,0 +1,79 @@
+name: 2 - Build signed release APK (for Bazaar / Myket)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check signing secrets
+        env:
+          KS: ${{ secrets.KEYSTORE_BASE64 }}
+          API: ${{ vars.API_BASE }}
+        run: |
+          [ -n "$KS" ] || { echo "::error::Secret KEYSTORE_BASE64 تنظیم نشده (ابتدا workflow شماره 1 را اجرا کنید)"; exit 1; }
+          [ -n "$API" ] || { echo "::error::Variable API_BASE تنظیم نشده"; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+
+      - name: Build web app
+        env:
+          VITE_API_BASE: ${{ vars.API_BASE }}
+        run: npm run build
+
+      - name: Add Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Icon and version
+        run: |
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            for f in ic_launcher ic_launcher_round ic_launcher_foreground; do
+              cp public/icons/icon-192.png android/app/src/main/res/mipmap-$d/$f.png
+            done
+          done
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          VNAME=$(node -p "require('./package.json').version")
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$VNAME\"/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease
+
+      - name: Align and sign
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          IN=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          "$BT/zipalign" -p 4 "$IN" aligned.apk
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/keystore.jks" \
+            --ks-pass env:KS_PASS --key-pass env:KEY_PASS --ks-key-alias "$KEY_ALIAS" \
+            --out glass-cut-release.apk aligned.apk
+          "$BT/apksigner" verify --print-certs glass-cut-release.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glass-cut-release-apk
+          path: glass-cut-release.apk
