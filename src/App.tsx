@@ -253,7 +253,7 @@ export default function App() {
     const old = await db.listWarehouse();
     const made: WarehouseItem[] = valid.map((r) => ({
       id: uid(), width: r.width, height: r.height, qty: r.qty, label: r.label, kind,
-      ...(kind === 'pieces' ? { grain: r.grain ?? 'free' } : {}), savedAt: Date.now(),
+      ...(kind === 'pieces' ? { grain: 'grain' in r ? (r.grain ?? 'free') : 'free' } : {}), savedAt: Date.now(),
     }));
     await db.saveWarehouseItems([...made, ...old]);
     setWarehouse([...made, ...old]);
