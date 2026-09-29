@@ -17,10 +17,3 @@
 The release workflow applies Android hardening for the standalone/offline build: cleartext network traffic is disabled, mixed content is blocked, Android backup/device transfer is disabled, screenshots and screen recording are blocked with `FLAG_SECURE`, WebView remote debugging is disabled in release builds, and R8/resource shrinking is enabled for the native Android layer.
 
 This does not make the application impossible to reverse engineer. The web UI/JavaScript shipped inside a WebView can still be extracted and analyzed. Do not embed API keys, private signing material, passwords, or other secrets in the web application bundle.
-
-
-## Android security hardening
-
-The release workflow applies Android hardening for the standalone/offline build: cleartext network traffic is disabled, mixed content is blocked, Android backup/device transfer is disabled, screenshots and screen recording are blocked, WebView remote debugging is disabled in release builds, and R8/resource shrinking is enabled for the native Android layer.
-
-This does not make the application impossible to reverse engineer. The web UI/JavaScript shipped inside a WebView can still be extracted and analyzed. Do not embed API keys, private signing material, passwords, or other secrets in the web application bundle.
